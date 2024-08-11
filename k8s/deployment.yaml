@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bestcloudforme
+  namespace: bestcloudforme
+  labels:
+    app: bestcloudforme
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bestcloudforme
+  template:
+    metadata:
+      labels:
+        app: bestcloudforme
+    spec:
+      containers:
+        - name: bestcloudforme
+          image: yildirim7mustafa/bestcloudforme:latest
+          ports:
+            - containerPort: 8080
