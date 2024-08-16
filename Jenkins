@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+    stages {
+       stage("Clean Up"){
+            steps{
+                deleteDir()
+            }
+        }
+        stage("Clone Repo"){
+            steps{
+               cleanWs()
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'github.com/yildirim7mustafa/bestcloudforme-case']])
+               echo "Clone repo success"
+               
+            }
+        }
+        stage("Build & tag with commit-id"){
+            steps{
+            
+                    script {
+                        def commitId = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                        echo "Commit ID: ${commitId}"
+                        env.COMMIT_ID = commitId   
+                        sh "docker build . -t yildirim7mustafa/bestcloudforme:${env.COMMIT_ID}" 
+                        echo "build success"
+                    }
+               
+            }
+        }
+        stage('Push to Harbour') {
+            steps {
+                script {
+                    
+                    sh 'docker login -u <dockerhub> -p <password>'
+                    sh "docker push yildirim7mustafa/bestcloudforme:${env.COMMIT_ID}"
+                   
+                }
+            }
+        }
+        
+        stage('Update Deployment YAML') {
+            steps {
+                
+                checkout scmGit(branches: [[name: '*/kubernetes-yamls']], extensions: [], userRemoteConfigs: [[url: 'github.com/yildirim7mustafa/bestcloudforme-case']])
+                
+           
+                    script {
+                       dir("bestcloudforme"){
+                           sh "sed -i 's#yildirim7mustafa/bestcloudforme:.*#yildirim7mustafa/bestcloudforme:${env.COMMIT_ID}#' api.yaml"
+                        } 
+                        
+                    sh 'git add bestcloudforme'
+                    sh 'git commit --allow-empty -m "image tag updated" '
+                    sh 'git remote set-url origin https://<git-username>:<access-token>@github.com/yildirim7mustafa/bestcloudforme-case'
+                    sh 'git push -f origin HEAD:kubernetes-yamls'
+                }   
+            }
+        }       
+    }
+    post {
+        always {
+            script {
+                def currentDate = new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))
+                slackSend (
+                    channel: '#deployjenkins', 
+                    color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger',
+                    message: "Pipeline ${env.JOB_NAME} #${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}\nCommit ID: ${env.COMMIT_ID}\nDate: ${currentDate}\nMore details: ${env.BUILD_URL}"
+                )
+            }
+        }
+    }
+}
