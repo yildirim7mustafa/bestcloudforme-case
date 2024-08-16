@@ -47,7 +47,7 @@ ingress.networking.k8s.io/bestcloudforme   <none>   bestcloudforme.yildirim7must
 ### 6. Uygulamaya Dışarıdan Erişim Sağlanması
 Burada bc4m clusterım için cert-manager ve ingress-nginx kurulumu tamamlanmıştır. Go daddyden aldığım yildirim7mustafa.online domainim route53 servisine transfer edilmiştir. A kaydı olarak bestcloudforme eklenmiştir.Ingressime annotationlar eklenerek https kullanımı için sertifika kurulumu amaçlanmıştır. Ama ingress-nginx-controller üzerinden bestcloudforme ingressim dış dünyaya açılamamıştır.Network veya firewall ayarlarımda sorun olabilir çözümlemeye çalışıyorum.
 
-### 7. Pipeline
+### 7. Pipeline (taskta istenmediği için entegre edilmedi)
 Burası projelerde oluşturup kullandığım pipeline.Çok ayrıntı vermeden jenkinsfile ve yapıyı de eklemek istedim.
 Yeni bir commit gelince bu commit jenkins'i trigger ediyor. Pipeline çalışıp build ediyoe ve CommitID ile tagleyerek yazılım takibi yapılıyor.Jenkins commit id'sini git adresinde tutulan (genelde baska bir projede yada projenin farklı bir branchinde) image'ın tagi commit id ile guncelleniyor.Jenkins success veya fail durumunu slack bildirimi ile gönderiyor.Argocd git adresini gözlediği için değişiklik gelince sync ediyor ve release sağlanmış oluyor. 
 ![image](https://github.com/user-attachments/assets/4e8ecbd3-eeaa-424b-ad12-95f2adc0a2bc)
